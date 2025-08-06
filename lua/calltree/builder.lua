@@ -4,8 +4,7 @@ local M = {}
 
 function M.new(gopls_client)
     local obj = {
-        client = gopls_client,
-        visited = {}
+        client = gopls_client
     }
     setmetatable(obj, { __index = M })
     return obj
@@ -30,7 +29,6 @@ function M:build(position, direction, max_depth)
         direction = direction
     }
     
-    self.visited = {}
     self:build_recursive(tree, direction, max_depth)
     return tree
 end
@@ -40,13 +38,18 @@ function M:build_recursive(node, direction, max_depth)
         return
     end
     
+    -- 防止循环引用 - 检查是否在当前调用路径中
     local item_key = self:get_item_key(node.item)
-    if self.visited[item_key] then
-        node.is_recursive = true
-        return
-    end
     
-    self.visited[item_key] = true
+    -- 检查当前路径是否存在循环
+    local current = node.parent
+    while current do
+        if self:get_item_key(current.item) == item_key then
+            node.is_recursive = true
+            return
+        end
+        current = current.parent
+    end
     
     local calls = {}
     
@@ -83,8 +86,6 @@ function M:build_recursive(node, direction, max_depth)
         table.insert(node.children, child)
         self:build_recursive(child, direction, max_depth)
     end
-    
-    self.visited[item_key] = nil
 end
 
 function M:build_async(position, direction, max_depth, callback)
