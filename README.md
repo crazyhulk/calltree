@@ -13,8 +13,9 @@ A Neovim plugin that displays Go function call trees using `gopls` LSP server.
 ## Requirements
 
 - Neovim >= 0.8
-- `gopls` LSP server running
+- `gopls` LSP server running  
 - Go project
+- [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) (dependency)
 
 ## Installation
 
@@ -23,6 +24,9 @@ A Neovim plugin that displays Go function call trees using `gopls` LSP server.
 ```lua
 {
     'your-username/calltree.nvim',
+    dependencies = {
+        'nvim-lua/plenary.nvim',
+    },
     ft = 'go',
     config = function()
         require('calltree').setup()
@@ -35,6 +39,9 @@ A Neovim plugin that displays Go function call trees using `gopls` LSP server.
 ```lua
 use {
     'your-username/calltree.nvim',
+    requires = {
+        'nvim-lua/plenary.nvim',
+    },
     ft = 'go',
     config = function()
         require('calltree').setup()
