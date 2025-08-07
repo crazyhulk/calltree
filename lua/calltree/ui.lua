@@ -9,7 +9,26 @@ end
 
 local function get_display_name(item)
 	local file_name = get_file_name(item.uri)
-	return string.format("%s (%s:%d)", item.name, file_name, item.range.start.line + 1)
+
+	-- 提取 package 名
+	local package_name = ""
+	if item.detail then
+		-- item.detail 格式通常是 "package_path • filename"
+		local pkg_path = item.detail:match("^([^•]+)")
+		if pkg_path then
+			pkg_path = pkg_path:gsub("^%s+", ""):gsub("%s+$", "") -- 去除前后空格
+			-- 获取包名的最后一部分
+			package_name = pkg_path:match("([^/]+)$") or pkg_path
+		end
+	end
+
+	-- 如果有包名，显示格式：函数名 [包名] (文件名:行号)
+	-- 如果没有包名，显示格式：函数名 (文件名:行号)
+	if package_name and package_name ~= "" then
+		return string.format("%s.%s (%s:%d)", package_name, item.name, file_name, item.range.start.line + 1)
+	else
+		return string.format("%s (%s:%d)", item.name, file_name, item.range.start.line + 1)
+	end
 end
 
 local function render_tree(tree, lines, level, prefix, is_last)
