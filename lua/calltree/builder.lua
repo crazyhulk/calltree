@@ -73,13 +73,46 @@ function M:build_recursive(node, direction, max_depth)
         end
     end
     
+    -- 按照调用在源代码中的位置排序
+    -- 为每个调用的每个范围创建单独的条目
+    local sortedCalls = {}
     for _, call in ipairs(calls) do
+        if call.ranges and #call.ranges > 0 then
+            for _, range in ipairs(call.ranges) do
+                table.insert(sortedCalls, {
+                    type = call.type,
+                    item = call.item,
+                    range = range
+                })
+            end
+        else
+            -- 如果没有范围信息，直接添加
+            table.insert(sortedCalls, {
+                type = call.type,
+                item = call.item,
+                range = nil
+            })
+        end
+    end
+    
+    -- 按行号和列号排序
+    table.sort(sortedCalls, function(a, b)
+        if a.range and b.range then
+            if a.range.start.line == b.range.start.line then
+                return a.range.start.character < b.range.start.character
+            end
+            return a.range.start.line < b.range.start.line
+        end
+        return false
+    end)
+    
+    for _, call in ipairs(sortedCalls) do
         local child = {
             item = call.item,
             children = {},
             level = node.level + 1,
             call_type = call.type,
-            ranges = call.ranges,
+            ranges = call.range and {call.range} or nil,
             parent = node
         }
         
